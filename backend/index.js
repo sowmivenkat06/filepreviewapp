@@ -1,5 +1,3 @@
-// ✅ Complete backend in one file - index.js
-
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -18,17 +16,36 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(join(__dirname, 'uploads')));
 
-// 📦 MongoDB Connection
+// ✅ CORS for local + production frontend
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://your-frontend.vercel.app' // 🔁 Replace with your actual deployed frontend URL
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
+
+// ✅ MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('✅ MongoDB connected'))
-.catch((err) => console.error('❌ MongoDB connection error:', err));
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // ✅ Schemas & Models
 const userSchema = new mongoose.Schema({
