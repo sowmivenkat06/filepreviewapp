@@ -1,6 +1,6 @@
 // frontend/src/api/api.js
 import axios from 'axios';
-
+console.log("🌐 Backend URL:", import.meta.env.VITE_BACKEND_URL);
 const apiClient = axios.create({
   baseURL: `${import.meta.env.VITE_BACKEND_URL}/api`, // dynamically uses env URL
   headers: {
