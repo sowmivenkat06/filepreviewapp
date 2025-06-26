@@ -48,7 +48,7 @@ export default function Home() {
 
   // Render preview based on mimetype
   const renderFilePreview = (f) => {
-    const url = `http://localhost:5000/${f.path}`;
+    const url = `https://filepreviewapp.onrender.com/${f.path}`;
     const type = f.mimetype;
 
     if (type.startsWith('image/')) {
