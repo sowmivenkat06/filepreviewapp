@@ -47,9 +47,9 @@ export default function Home() {
   };
 
   // Render preview based on mimetype
-  const renderFilePreview = (f) => {
-    const url = `https://filepreviewapp.onrender.com/${f.path}`;
-    const type = f.mimetype;
+const renderFilePreview = (f) => {
+  const url = `${import.meta.env.VITE_BACKEND_URL}/${f.path}`;
+  const type = f.mimetype;
 
     if (type.startsWith('image/')) {
       return <img src={url} alt={f.filename} style={{ maxWidth: '200px', marginBottom: '10px' }} />;
