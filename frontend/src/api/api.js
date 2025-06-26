@@ -1,16 +1,12 @@
+// frontend/src/api/api.js
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5000/api', 
-});
-
-// Attach token to each request
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  baseURL: `${import.meta.env.VITE_BACKEND_URL}/api`, // dynamically uses env URL
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true, // optional: include cookies if needed for auth
 });
 
 export default apiClient;
