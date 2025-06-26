@@ -11,7 +11,8 @@ export default function OTPVerify() {
   const handleVerify = async (e) => {
     e.preventDefault();
     try {
-      const res = await apiClient.post('/auth/verify', { email, otp });
+      const res = await apiClient.post('/auth/verify-otp', { email, otp });
+
       localStorage.setItem('token', res.data.token);
       navigate('/');
     } catch (err) {
