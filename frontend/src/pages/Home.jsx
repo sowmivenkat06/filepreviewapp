@@ -6,53 +6,69 @@ export default function Home() {
   const [preview, setPreview] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  // Fetch all uploaded files on load
+  // Fetch uploaded files
   useEffect(() => {
-    apiClient.get('/files')
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    apiClient
+      .get('/files', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((res) => setUploadedFiles(res.data))
       .catch((err) => console.error('Error loading files:', err));
   }, []);
 
-  // Handle file input + preview
+  // Handle file selection and preview
   const handlePreview = (e) => {
     const selected = e.target.files[0];
     setFile(selected);
 
-    if (selected && selected.type.startsWith('image/')) {
-      setPreview(URL.createObjectURL(selected));
-    } else if (selected && selected.type === 'application/pdf') {
+    if (selected && (selected.type.startsWith('image/') || selected.type === 'application/pdf')) {
       setPreview(URL.createObjectURL(selected));
     } else {
       setPreview('');
     }
   };
 
-  // Upload file to server
+  // Handle file upload with token
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!file) return alert('Please select a file first.');
+
+    const token = localStorage.getItem('token');
+    if (!token) return alert('Login expired. Please log in again.');
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const res = await apiClient.post('/files/upload', formData);
+      const res = await apiClient.post('/files/upload', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       setUploadedFiles([...uploadedFiles, res.data]);
       setFile(null);
       setPreview('');
+      alert('✅ File uploaded!');
     } catch (err) {
       console.error('Upload failed:', err);
-      alert('File upload failed');
+      alert('❌ File upload failed');
     }
   };
 
-  // Render preview based on mimetype
+  // Render preview for each uploaded file
   const renderFilePreview = (f) => {
-  const url = `${import.meta.env.VITE_BACKEND_URL}/${f.path}`;
-  const type = f.mimetype;
+    const url = `${import.meta.env.VITE_BACKEND_URL}/${f.path}`;
+    const type = f.mimetype;
 
     if (type.startsWith('image/')) {
-      return <img src={url} alt={f.filename} style={{ maxWidth: '200px', marginBottom: '10px' }} />;
+      return <img src={url} alt={f.filename} style={{ maxWidth: '200px' }} />;
     }
 
     if (type === 'application/pdf') {
@@ -62,7 +78,7 @@ export default function Home() {
           width="300"
           height="400"
           title={f.filename}
-          style={{ border: '1px solid #ccc', marginBottom: '10px' }}
+          style={{ border: '1px solid #ccc' }}
         />
       );
     }
@@ -98,10 +114,10 @@ export default function Home() {
         {preview && (
           <div style={{ margin: '1rem 0' }}>
             <p>Preview:</p>
-            {file.type.startsWith('image/') && (
+            {file?.type?.startsWith('image/') && (
               <img src={preview} alt="preview" style={{ maxWidth: '300px' }} />
             )}
-            {file.type === 'application/pdf' && (
+            {file?.type === 'application/pdf' && (
               <iframe
                 src={preview}
                 width="300"
