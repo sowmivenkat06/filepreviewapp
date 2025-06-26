@@ -19,7 +19,7 @@ export default function Login() {
       alert('Login successful');
 
       // ✅ Navigate to home page
-      navigate('/Home');
+      navigate('/home');
     } catch (err) {
       console.error('❌ Login failed:', err);
       const message =
