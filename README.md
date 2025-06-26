@@ -24,4 +24,4 @@ A full-stack MERN (MongoDB, Express, React, Node.js) application where users can
 | File Upload| Multer                           |
 | Deployment | Render                           |
 
-## 🔗 Deployement Link : https://filepreviewapp.onrender.com
+## 🔗 Deployement Link : https://filepreviewapp-1.onrender.com
