@@ -22,6 +22,7 @@ app.use('/uploads', express.static(join(__dirname, 'uploads')));
 // ✅ CORS for local + production frontend
 const allowedOrigins = [
   'http://localhost:5173',
+  'https://filepreviewapp-1.onrender.com',
   'https://your-frontend.vercel.app' // 🔁 Replace with your actual deployed frontend URL
 ];
 
