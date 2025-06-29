@@ -11,6 +11,7 @@ export default function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
+        <Route path="/" element={<Navigate to="/login" />} /> {/* ✅ fix */}
         <Route path="/home" element={isAuthenticated() ? <Home /> : <Navigate to="/login" />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify" element={<OTPVerify />} />
