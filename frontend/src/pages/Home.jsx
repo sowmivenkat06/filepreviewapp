@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import apiClient from '../api/api';
 
@@ -5,71 +6,54 @@ export default function Home() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  const backendBase = import.meta.env.VITE_BACKEND_URL?.replace(/\/api$/, '');
-
-  // ✅ Fetch uploaded files on mount
+  // Fetch all uploaded files on load
   useEffect(() => {
-    apiClient
-      .get('/files')
-      .then((res) => {
-        setUploadedFiles(Array.isArray(res.data) ? res.data : []);
-      })
-      .catch((err) => {
-        console.error('Error loading files:', err);
-        setUploadedFiles([]);
-      });
+    apiClient.get('/files')
+      .then((res) => setUploadedFiles(res.data))
+      .catch((err) => console.error('Error loading files:', err));
   }, []);
 
-  // ✅ Handle preview
+  // Handle file input + preview
   const handlePreview = (e) => {
     const selected = e.target.files[0];
     setFile(selected);
-    if (!selected) return;
 
-    if (selected.type.startsWith('image/') || selected.type === 'application/pdf') {
+    if (selected && selected.type.startsWith('image/')) {
+      setPreview(URL.createObjectURL(selected));
+    } else if (selected && selected.type === 'application/pdf') {
       setPreview(URL.createObjectURL(selected));
     } else {
       setPreview('');
     }
   };
 
-  // ✅ Handle upload
+  // Upload file to server
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file) return alert('Please select a file.');
+    if (!file) return alert('Please select a file first.');
 
     const formData = new FormData();
     formData.append('file', file);
 
-    setLoading(true);
     try {
-      const res = await apiClient.post('/files/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      setUploadedFiles((prev) => [...prev, res.data]);
+      const res = await apiClient.post('/files/upload', formData);
+      setUploadedFiles([...uploadedFiles, res.data]);
       setFile(null);
       setPreview('');
-      alert('File uploaded successfully!');
     } catch (err) {
       console.error('Upload failed:', err);
-      alert(err.response?.data?.message || 'Upload failed');
-    } finally {
-      setLoading(false);
+      alert('File upload failed');
     }
   };
 
-  // ✅ Render preview of uploaded file
+  // Render preview based on mimetype
   const renderFilePreview = (f) => {
-    const url = `${backendBase}/${f.path}`;
-    const type = f.mimetype;
+  const url = `${import.meta.env.VITE_BACKEND_URL}/${f.path}`;
+  const type = f.mimetype;
 
     if (type.startsWith('image/')) {
-      return <img src={url} alt={f.filename} style={{ maxWidth: '200px' }} />;
+      return <img src={url} alt={f.filename} style={{ maxWidth: '200px', marginBottom: '10px' }} />;
     }
 
     if (type === 'application/pdf') {
@@ -79,7 +63,7 @@ export default function Home() {
           width="300"
           height="400"
           title={f.filename}
-          style={{ border: '1px solid #ccc' }}
+          style={{ border: '1px solid #ccc', marginBottom: '10px' }}
         />
       );
     }
@@ -105,7 +89,6 @@ export default function Home() {
   return (
     <div className="upload-box" style={{ padding: '2rem' }}>
       <h2>📤 Upload a File</h2>
-
       <form onSubmit={handleUpload}>
         <input
           type="file"
@@ -113,8 +96,7 @@ export default function Home() {
           accept="image/*,.pdf,.ppt,.pptx"
           required
         />
-
-        {preview && file && (
+        {preview && (
           <div style={{ margin: '1rem 0' }}>
             <p>Preview:</p>
             {file.type.startsWith('image/') && (
@@ -131,9 +113,8 @@ export default function Home() {
             )}
           </div>
         )}
-
-        <button type="submit" disabled={loading} style={{ marginTop: '1rem' }}>
-          {loading ? 'Uploading...' : 'Upload'}
+        <button type="submit" style={{ marginTop: '1rem' }}>
+          Upload
         </button>
       </form>
 
