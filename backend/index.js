@@ -22,7 +22,6 @@ app.use('/uploads', express.static(join(__dirname, 'uploads')));
 // ✅ CORS for local + production frontend
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://filepreviewapp-1.onrender.com',
   'https://your-frontend.vercel.app' // 🔁 Replace with your actual deployed frontend URL
 ];
 
@@ -178,6 +177,35 @@ app.post('/api/auth/login', async (req, res) => {
     res.status(500).json({ message: 'Login failed' });
   }
 });
+// ✅ Google Login
+app.post('/api/auth/google', async (req, res) => {
+  const { email, name } = req.body;
+
+  try {
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({
+        email,
+        password: '', // No password for Google login
+        otp: null,
+        otpExpiry: null
+      });
+      await user.save();
+    }
+
+    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.status(200).json({ token });
+
+  } catch (err) {
+    console.error('❌ Google Auth Error:', err.message);
+    res.status(500).json({ message: 'Google auth failed' });
+  }
+});
+
 
 // ✅ Upload File
 app.post('/api/files/upload', verifyToken, upload.single('file'), async (req, res) => {
