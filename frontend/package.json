@@ -5,13 +5,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite preview --host"
   },
   "dependencies": {
-    "@react-oauth/google": "^0.12.2",
     "axios": "^1.10.0",
-    "express": "^5.1.0",
-    "jwt-decode": "^4.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1"
@@ -21,3 +19,4 @@
     "vite": "^7.0.0"
   }
 }
+
