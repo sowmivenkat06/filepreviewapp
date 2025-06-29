@@ -5,66 +5,67 @@ export default function Home() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch uploaded files
+  const backendBase = import.meta.env.VITE_BACKEND_URL?.replace(/\/api$/, '');
+
+  // ✅ Fetch uploaded files on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     apiClient
-      .get('/files', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      .get('/files')
+      .then((res) => {
+        setUploadedFiles(Array.isArray(res.data) ? res.data : []);
       })
-      .then((res) => setUploadedFiles(res.data))
-      .catch((err) => console.error('Error loading files:', err));
+      .catch((err) => {
+        console.error('Error loading files:', err);
+        setUploadedFiles([]);
+      });
   }, []);
 
-  // Handle file selection and preview
+  // ✅ Handle preview
   const handlePreview = (e) => {
     const selected = e.target.files[0];
     setFile(selected);
+    if (!selected) return;
 
-    if (selected && (selected.type.startsWith('image/') || selected.type === 'application/pdf')) {
+    if (selected.type.startsWith('image/') || selected.type === 'application/pdf') {
       setPreview(URL.createObjectURL(selected));
     } else {
       setPreview('');
     }
   };
 
-  // Handle file upload with token
+  // ✅ Handle upload
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file) return alert('Please select a file first.');
-
-    const token = localStorage.getItem('token');
-    if (!token) return alert('Login expired. Please log in again.');
+    if (!file) return alert('Please select a file.');
 
     const formData = new FormData();
     formData.append('file', file);
 
+    setLoading(true);
     try {
       const res = await apiClient.post('/files/upload', formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      setUploadedFiles([...uploadedFiles, res.data]);
+      setUploadedFiles((prev) => [...prev, res.data]);
       setFile(null);
       setPreview('');
-      alert('✅ File uploaded!');
+      alert('File uploaded successfully!');
     } catch (err) {
       console.error('Upload failed:', err);
-      alert('❌ File upload failed');
+      alert(err.response?.data?.message || 'Upload failed');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Render preview for each uploaded file
+  // ✅ Render preview of uploaded file
   const renderFilePreview = (f) => {
-    const url = `${import.meta.env.VITE_BACKEND_URL}/${f.path}`;
+    const url = `${backendBase}/${f.path}`;
     const type = f.mimetype;
 
     if (type.startsWith('image/')) {
@@ -104,6 +105,7 @@ export default function Home() {
   return (
     <div className="upload-box" style={{ padding: '2rem' }}>
       <h2>📤 Upload a File</h2>
+
       <form onSubmit={handleUpload}>
         <input
           type="file"
@@ -111,13 +113,14 @@ export default function Home() {
           accept="image/*,.pdf,.ppt,.pptx"
           required
         />
-        {preview && (
+
+        {preview && file && (
           <div style={{ margin: '1rem 0' }}>
             <p>Preview:</p>
-            {file?.type?.startsWith('image/') && (
+            {file.type.startsWith('image/') && (
               <img src={preview} alt="preview" style={{ maxWidth: '300px' }} />
             )}
-            {file?.type === 'application/pdf' && (
+            {file.type === 'application/pdf' && (
               <iframe
                 src={preview}
                 width="300"
@@ -128,8 +131,9 @@ export default function Home() {
             )}
           </div>
         )}
-        <button type="submit" style={{ marginTop: '1rem' }}>
-          Upload
+
+        <button type="submit" disabled={loading} style={{ marginTop: '1rem' }}>
+          {loading ? 'Uploading...' : 'Upload'}
         </button>
       </form>
 
