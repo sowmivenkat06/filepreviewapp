@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/api';
 
@@ -6,7 +6,14 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [redirect, setRedirect] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (redirect) {
+      navigate('/');
+    }
+  }, [redirect, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -14,12 +21,10 @@ export default function Login() {
     try {
       const res = await apiClient.post('/auth/login', { email, password });
 
-      // ✅ Save token in localStorage
       localStorage.setItem('token', res.data.token);
       alert('Login successful');
 
-      // ✅ Navigate to home page
-      navigate('/');
+      setRedirect(true);  // ✅ trigger navigation
     } catch (err) {
       console.error('❌ Login failed:', err);
       const message =
