@@ -18,7 +18,7 @@ app.use(express.json());
 app.use('/uploads', express.static(join(__dirname, 'uploads')));
 
 // ✅ CORS Config
-const allowedOrigins = ['http://localhost:5173'];
+const allowedOrigins = ['https://filepreviewapp-1.onrender.com','http://localhost:5173'];
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
